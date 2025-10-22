@@ -1,0 +1,56 @@
+[Unit]
+Description=Graceful Chromium-based browser shutdown
+Documentation=https://wiki.archlinux.org/title/Systemd/User
+DefaultDependencies=no
+Before=wayland-session-shutdown.target
+PartOf=wayland-session@.target
+StopWhenUnneeded=yes
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/bin/true
+# Gracefully shutdown Chrome/Chromium/Brave and other chromium-based browsers
+ExecStop=/usr/bin/sh -c ' \
+    browsers="chrome chromium brave vivaldi opera"; \
+    running_browsers=""; \
+    for browser in $browsers; do \
+        if pgrep -f "^/.*/$browser( |$)" >/dev/null 2>&1; then \
+            printf "Sending SIGTERM to %s...\\n" "$browser"; \
+            pkill -15 -f "^/.*/$browser( |$)"; \
+            running_browsers="$running_browsers $browser"; \
+        fi; \
+    done; \
+    if [ -n "$running_browsers" ]; then \
+        timeout=10; \
+        while [ $timeout -gt 0 ]; do \
+            all_stopped=1; \
+            for browser in $running_browsers; do \
+                if pgrep -f "^/.*/$browser( |$)" >/dev/null 2>&1; then \
+                    all_stopped=0; \
+                    break; \
+                fi; \
+            done; \
+            if [ $all_stopped -eq 1 ]; then \
+                printf "All browsers shutdown gracefully\\n"; \
+                exit 0; \
+            fi; \
+            sleep 1; \
+            timeout=$((timeout - 1)); \
+        done; \
+        printf "Timeout reached, force terminating remaining browsers...\\n"; \
+        for browser in $running_browsers; do \
+            if pgrep -f "^/.*/$browser( |$)" >/dev/null 2>&1; then \
+                printf "Force killing %s\\n" "$browser"; \
+                pkill -9 -f "^/.*/$browser( |$)" 2>/dev/null; \
+            fi; \
+        done; \
+    fi \
+'
+TimeoutStopSec=15
+# Reduce noise in logs for normal operations
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=wayland-session@.target
