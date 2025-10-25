@@ -32,11 +32,11 @@ ExecStop=/usr/bin/sh -c ' \
                 fi; \
             done; \
             if [ $__all_stopped -eq 1 ]; then \
-                printf "All __browsers shutdown gracefully\\n"; \
+                printf "All browsers shutdown gracefully\\n"; \
+                printf "waiting 1 sec before exit (%ds remaining)\\n" "$__timeout"; \
+                sleep 1; \
                 exit 0; \
             fi; \
-            printf "Still waiting... (%ds remaining)\\n" "$__timeout"; \
-            sleep 1; \
             __timeout=$((__timeout - 1)); \
         done; \
         printf "Timeout reached, force terminating remaining __browsers...\\n"; \
