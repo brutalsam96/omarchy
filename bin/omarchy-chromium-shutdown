@@ -22,17 +22,20 @@ done
 
 __still_running=$(__check_running_browsers)
 
+sleep "$__timeout"
+
 if [ -z "$__still_running" ]; then
     printf "All browsers have been terminated successfully.\n"
+    sleep 1
     exit 0
 fi
 
 printf "Waiting for:%s\n" "$__still_running"
-sleep "$__timeout"
 __still_running=$(__check_running_browsers)
 
 if [ -z "$__still_running" ]; then
     printf "All browsers have been terminated successfully.\n"
+    sleep 1
     exit 0
 fi
 
