@@ -25,8 +25,8 @@ __still_running=$(__check_running_browsers)
 sleep "$__timeout"
 
 if [ -z "$__still_running" ]; then
+    sleep 2
     printf "All browsers have been terminated successfully.\n"
-    sleep 1
     exit 0
 fi
 
