@@ -1,43 +1,23 @@
 #!/usr/bin/bash
 
 __browsers="chrome chromium brave vivaldi opera"
-__timeout=3
-
-__check_running_browsers() {
-  local __running=""
-  for ___browser in $__browsers; do
-      if pgrep -x "$__browser" >/dev/null 2>&1; then
-          __running="$__running $__browser"
-      fi
-  done
-  echo "$__running"
-}
 
 for __browser in $__browsers; do
     if pgrep -x "$__browser" >/dev/null 2>&1; then
         printf "Sending SIGTERM to %s...\n" "$__browser"
         pkill -15 -x "$__browser" 2>/dev/null || true
+        pidwait "$__browser" || true
+        printf "%s exited.\n" "$__browser"
     fi
 done
 
-__still_running=$(__check_running_browsers)
-
-sleep "$__timeout"
-
-if [ -z "$__still_running" ]; then
-    sleep 2
-    printf "All browsers have been terminated successfully.\n"
-    exit 0
-fi
-
-printf "Waiting for:%s\n" "$__still_running"
-__still_running=$(__check_running_browsers)
+# Final verification (optional safety check)
+__still_running=$(pgrep -x -l -f "$(echo $__browsers | tr ' ' '|')" || true)
 
 if [ -z "$__still_running" ]; then
     printf "All browsers have been terminated successfully.\n"
-    sleep 1
     exit 0
+else
+    printf "Warning: Some browsers are still running:\n%s\n" "$__still_running"
+    exit 1
 fi
-
-printf "Warning: Not all browsers have been terminated. Still running:%s\n" "$__still_running"
-exit 1
