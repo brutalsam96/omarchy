@@ -11,7 +11,6 @@ for __browser in $__browsers; do
     fi
 done
 
-# Final verification (optional safety check)
 __still_running=$(pgrep -x -l -f "$(echo $__browsers | tr ' ' '|')" || true)
 
 if [ -z "$__still_running" ]; then

@@ -1,20 +1,18 @@
 [Unit]
 Description=Graceful Chromium-based browser shutdown
-Documentation=https://wiki.archlinux.org/title/Systemd/User
 DefaultDependencies=no
+
+Before=wayland-wm@.service
+Before=wayland-wm-env@.service
 Before=wayland-session-shutdown.target
-PartOf=wayland-session@.target
-StopWhenUnneeded=yes
+Conflicts=wayland-session-shutdown.target
 
 [Service]
 Type=oneshot
-RemainAfterExit=yes
-ExecStart=/bin/true
-TimeoutStopSec=15
-ExecStop=%h/.local/bin/omarchy-chromium-shutdown
-
+ExecStart=%h/.local/bin/omarchy-chromium-shutdown
+TimeoutStartSec=20
 StandardOutput=journal
 StandardError=journal
 
 [Install]
-WantedBy=wayland-session@.target
+WantedBy=wayland-session-shutdown.target
