@@ -1,22 +1,19 @@
 #!/usr/bin/bash
+echo "[$(date +%s.%N)] Script started, PID=$$"
 
-__browsers="chrome chromium brave vivaldi opera"
+__browsers="chrome|chromium|brave|vivaldi|opera|microsoft-edge|microsoft-edge-stable|microsoft-edge-beta|microsoft-edge-dev|ungoogled-chromium|iron|slimjet|yandex_browser|yandex-browser|comodo|iridium|coccoc"
 
-for __browser in $__browsers; do
-    if pgrep -x "$__browser" >/dev/null 2>&1; then
-        printf "Sending SIGTERM to %s...\n" "$__browser"
-        pkill -15 -x "$__browser" 2>/dev/null || true
-        pidwait "$__browser" || true
-        printf "%s exited.\n" "$__browser"
-    fi
-done
+__running=$(pgrep -x "$__browsers" 2>/dev/null || true)
 
-__still_running=$(pgrep -x -l -f "$(echo $__browsers | tr ' ' '|')" || true)
-
-if [ -z "$__still_running" ]; then
-    printf "All browsers have been terminated successfully.\n"
+if [ -z "$__running" ]; then
+    echo "[$(date +%s.%N)] No browsers were running, exitting..."
     exit 0
-else
-    printf "Warning: Some browsers are still running:\n%s\n" "$__still_running"
-    exit 1
 fi
+
+echo "[$(date +%s.%N)] Sending SIGTERM"
+pkill -15 -x "$__browsers" 2>/dev/null || true
+echo "[$(date +%s.%N)] SIGTERM sent"
+
+sleep 3
+echo "[$(date +%s.%N)] Script completed"
+exit 0
